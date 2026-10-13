@@ -1,0 +1,77 @@
+{
+  "apiVersion": "monitoring.coreos.com/v1",
+  "kind": "ServiceMonitor",
+  "metadata": {
+    "name": "clinic",
+    "namespace": "vle7",
+    "labels": {
+      "release": "monitoring"
+    }
+  },
+  "spec": {
+    "selector": {
+      "matchLabels": {
+        "app": "clinic"
+      }
+    },
+    "endpoints": [
+      {
+        "port": "http",
+        "path": "/metrics",
+        "interval": "10s"
+      }
+    ]
+  }
+}
+---
+{
+  "apiVersion": "monitoring.coreos.com/v1",
+  "kind": "ServiceMonitor",
+  "metadata": {
+    "name": "clinic",
+    "namespace": "vle8",
+    "labels": {
+      "release": "monitoring"
+    }
+  },
+  "spec": {
+    "selector": {
+      "matchLabels": {
+        "app": "clinic"
+      }
+    },
+    "endpoints": [
+      {
+        "port": "http",
+        "path": "/metrics",
+        "interval": "10s"
+      }
+    ]
+  }
+}
+---
+{
+  "apiVersion": "monitoring.coreos.com/v1",
+  "kind": "ServiceMonitor",
+  "metadata": {
+    "name": "clinic",
+    "namespace": "vle9",
+    "labels": {
+      "release": "monitoring"
+    }
+  },
+  "spec": {
+    "selector": {
+      "matchLabels": {
+        "app": "clinic"
+      }
+    },
+    "endpoints": [
+      {
+        "port": "http",
+        "path": "/metrics",
+        "interval": "10s"
+      }
+    ]
+  }
+}

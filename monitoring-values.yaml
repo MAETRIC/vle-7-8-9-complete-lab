@@ -1,0 +1,59 @@
+grafana:
+  admin:
+    existingSecret: grafana-admin
+    userKey: admin-user
+    passwordKey: admin-password
+  service:
+    type: NodePort
+    nodePort: 30300
+  resources:
+    requests: {cpu: 50m, memory: 128Mi}
+    limits: {memory: 384Mi}
+prometheus:
+  service:
+    type: NodePort
+    nodePort: 30900
+  prometheusSpec:
+    scrapeInterval: 15s
+    evaluationInterval: 15s
+    retention: 2h
+    resources:
+      requests: {cpu: 100m, memory: 256Mi}
+      limits: {memory: 768Mi}
+alertmanager:
+  service:
+    type: NodePort
+    nodePort: 30903
+  config:
+    global:
+      resolve_timeout: 30s
+      smtp_smarthost: host.minikube.internal:1025
+      smtp_from: alertmanager@vle.local
+      smtp_require_tls: false
+    route:
+      receiver: lab-inbox
+      group_by: [alertname, experiment]
+      group_wait: 5s
+      group_interval: 15s
+      repeat_interval: 15m
+      routes:
+        - receiver: 'null'
+          matchers: ['alertname="Watchdog"']
+    receivers:
+      - name: 'null'
+      - name: lab-inbox
+        email_configs:
+          - to: student@vle.local
+            send_resolved: true
+    inhibit_rules: []
+  alertmanagerSpec:
+    resources:
+      requests: {cpu: 20m, memory: 64Mi}
+      limits: {memory: 160Mi}
+kubeControllerManager: {enabled: false}
+kubeScheduler: {enabled: false}
+kubeEtcd: {enabled: false}
+prometheusOperator:
+  resources:
+    requests: {cpu: 50m, memory: 100Mi}
+    limits: {memory: 256Mi}

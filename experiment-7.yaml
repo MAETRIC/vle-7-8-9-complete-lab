@@ -1,0 +1,147 @@
+{
+  "apiVersion": "v1",
+  "kind": "Namespace",
+  "metadata": {
+    "name": "vle7"
+  }
+}
+---
+{
+  "apiVersion": "apps/v1",
+  "kind": "Deployment",
+  "metadata": {
+    "name": "clinic",
+    "namespace": "vle7"
+  },
+  "spec": {
+    "replicas": 2,
+    "selector": {
+      "matchLabels": {
+        "app": "clinic",
+        "version": "v1-monitored"
+      }
+    },
+    "template": {
+      "metadata": {
+        "labels": {
+          "app": "clinic",
+          "version": "v1-monitored"
+        }
+      },
+      "spec": {
+        "automountServiceAccountToken": false,
+        "serviceAccountName": "default",
+        "securityContext": {
+          "runAsNonRoot": true,
+          "runAsUser": 1000,
+          "runAsGroup": 1000,
+          "seccompProfile": {
+            "type": "RuntimeDefault"
+          }
+        },
+        "containers": [
+          {
+            "name": "clinic",
+            "image": "vle-clinic:1",
+            "imagePullPolicy": "Never",
+            "env": [
+              {
+                "name": "APP_VERSION",
+                "value": "v1-monitored"
+              },
+              {
+                "name": "EXPERIMENT",
+                "value": "7"
+              },
+              {
+                "name": "STUDENT_NAME",
+                "valueFrom": {
+                  "secretKeyRef": {
+                    "name": "lab-identity",
+                    "key": "STUDENT_NAME"
+                  }
+                }
+              },
+              {
+                "name": "STUDENT_ID",
+                "valueFrom": {
+                  "secretKeyRef": {
+                    "name": "lab-identity",
+                    "key": "STUDENT_ID"
+                  }
+                }
+              }
+            ],
+            "ports": [
+              {
+                "containerPort": 8080,
+                "name": "http"
+              }
+            ],
+            "readinessProbe": {
+              "httpGet": {
+                "path": "/healthz",
+                "port": 8080
+              },
+              "initialDelaySeconds": 2,
+              "periodSeconds": 2
+            },
+            "livenessProbe": {
+              "httpGet": {
+                "path": "/healthz",
+                "port": 8080
+              },
+              "initialDelaySeconds": 5,
+              "periodSeconds": 10
+            },
+            "securityContext": {
+              "allowPrivilegeEscalation": false,
+              "readOnlyRootFilesystem": true,
+              "capabilities": {
+                "drop": [
+                  "ALL"
+                ]
+              }
+            },
+            "resources": {
+              "requests": {
+                "cpu": "20m",
+                "memory": "32Mi"
+              },
+              "limits": {
+                "cpu": "250m",
+                "memory": "96Mi"
+              }
+            }
+          }
+        ]
+      }
+    }
+  }
+}
+---
+{
+  "apiVersion": "v1",
+  "kind": "Service",
+  "metadata": {
+    "name": "clinic",
+    "namespace": "vle7",
+    "labels": {
+      "app": "clinic"
+    }
+  },
+  "spec": {
+    "type": "NodePort",
+    "selector": {
+      "app": "clinic"
+    },
+    "ports": [
+      {
+        "name": "http",
+        "port": 8080,
+        "targetPort": "http",
+        "nodePort": 30081
+      }
+    ]
+  }
+}

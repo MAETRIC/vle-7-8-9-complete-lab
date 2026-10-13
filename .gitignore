@@ -1,0 +1,7 @@
+*.tfstate*
+*.tfvars*
+*.tfplan
+.terraform/
+private/
+secrets.json
+node_modules/

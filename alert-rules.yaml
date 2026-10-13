@@ -1,0 +1,80 @@
+{
+  "apiVersion": "monitoring.coreos.com/v1",
+  "kind": "PrometheusRule",
+  "metadata": {
+    "name": "vle-alerts",
+    "namespace": "monitoring",
+    "labels": {
+      "release": "monitoring"
+    }
+  },
+  "spec": {
+    "groups": [
+      {
+        "name": "vle-experiment-alerts",
+        "rules": [
+          {
+            "alert": "VLEPodFailure",
+            "expr": "kube_pod_container_status_waiting_reason{namespace=\"vle7\",reason=\"CrashLoopBackOff\"} == 1",
+            "for": "15s",
+            "labels": {
+              "severity": "critical",
+              "experiment": "7"
+            },
+            "annotations": {
+              "summary": "Experiment 7: a real test pod is in CrashLoopBackOff"
+            }
+          },
+          {
+            "alert": "VLEHighCPU",
+            "expr": "sum(rate(container_cpu_usage_seconds_total{namespace=\"vle7\",container!=\"\",container!=\"POD\"}[1m])) > 0.3",
+            "for": "30s",
+            "labels": {
+              "severity": "warning",
+              "experiment": "7"
+            },
+            "annotations": {
+              "summary": "Experiment 7: namespace CPU exceeds 0.3 cores during controlled load"
+            }
+          },
+          {
+            "alert": "VLENodeDown",
+            "expr": "kube_node_status_condition{condition=\"Ready\",status=\"true\"} == 0",
+            "for": "1m",
+            "labels": {
+              "severity": "critical",
+              "experiment": "7"
+            },
+            "annotations": {
+              "summary": "Kubernetes node is not Ready"
+            }
+          },
+          {
+            "alert": "VLEFailedLogins",
+            "expr": "sum(increase(vle_failed_logins_total{namespace=\"vle9\"}[3m])) > 3",
+            "for": "10s",
+            "labels": {
+              "severity": "critical",
+              "experiment": "9"
+            },
+            "annotations": {
+              "summary": "Experiment 9: repeated failed application logins detected"
+            }
+          },
+          {
+            "alert": "VLEUnauthorizedAccess",
+            "expr": "sum(increase(vle_unauthorized_total{namespace=\"vle9\"}[3m])) > 3",
+            "for": "10s",
+            "labels": {
+              "severity": "critical",
+              "experiment": "9"
+            },
+            "annotations": {
+              "summary": "Experiment 9: repeated unauthorized API requests detected"
+            }
+          }
+        ]
+      }
+    ]
+  }
+}

@@ -1,0 +1,43 @@
+- hosts: localhost
+  connection: local
+  become: true
+  tasks:
+    - name: Install Docker, Java 21 and DevOps prerequisites
+      apt:
+        name: [docker.io, openjdk-21-jre-headless, git, curl, jq, unzip, conntrack, socat, python3-pip]
+        state: present
+        update_cache: yes
+    - name: Enable Docker
+      systemd: {name: docker, enabled: yes, state: started}
+    - name: Allow lab operator to use Docker
+      user: {name: ubuntu, groups: docker, append: yes}
+    - name: Add Jenkins signing key from official repository
+      get_url:
+        url: https://pkg.jenkins.io/debian-stable/jenkins.io-2026.key
+        dest: /usr/share/keyrings/jenkins-keyring.asc
+        mode: '0644'
+    - name: Add Jenkins stable package repository
+      apt_repository:
+        repo: deb [signed-by=/usr/share/keyrings/jenkins-keyring.asc] https://pkg.jenkins.io/debian-stable binary/
+        state: present
+    - name: Install Jenkins
+      apt: {name: jenkins, state: present, update_cache: yes}
+    - name: Enable container builds for Jenkins
+      user: {name: jenkins, groups: docker, append: yes}
+    - name: Configure Elasticsearch mapping limit for SonarQube
+      sysctl: {name: vm.max_map_count, value: '524288', state: present, reload: yes}
+    - name: Download Minikube
+      get_url:
+        url: https://storage.googleapis.com/minikube/releases/latest/minikube-linux-amd64
+        dest: /usr/local/bin/minikube
+        mode: '0755'
+    - name: Configure Jenkins memory and initial setup
+      file: {path: /etc/systemd/system/jenkins.service.d, state: directory}
+    - name: Set Jenkins service parameters
+      copy:
+        dest: /etc/systemd/system/jenkins.service.d/lab.conf
+        content: |
+          [Service]
+          Environment="JAVA_OPTS=-Djava.awt.headless=true -Djenkins.install.runSetupWizard=false -Xmx768m"
+    - name: Enable Jenkins service
+      systemd: {name: jenkins, enabled: yes, daemon_reload: yes, state: stopped}

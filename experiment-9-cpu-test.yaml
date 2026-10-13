@@ -1,0 +1,42 @@
+{
+  "apiVersion": "v1",
+  "kind": "Pod",
+  "metadata": {
+    "name": "controlled-cpu-load",
+    "namespace": "vle9",
+    "labels": {
+      "lab-test": "true"
+    }
+  },
+  "spec": {
+    "nodeName": "minikube",
+    "restartPolicy": "Never",
+    "automountServiceAccountToken": false,
+    "securityContext": {
+      "runAsNonRoot": true,
+      "runAsUser": 1000
+    },
+    "containers": [
+      {
+        "name": "controlled-cpu-load",
+        "image": "vle-clinic:1",
+        "imagePullPolicy": "Never",
+        "command": [
+          "node",
+          "-e",
+          "const end=Date.now()+180000;while(Date.now()<end){Math.sqrt(Math.random());}"
+        ],
+        "resources": {
+          "requests": {
+            "cpu": "100m",
+            "memory": "32Mi"
+          },
+          "limits": {
+            "cpu": "600m",
+            "memory": "64Mi"
+          }
+        }
+      }
+    ]
+  }
+}

@@ -1,0 +1,32 @@
+{
+  "apiVersion": "monitoring.coreos.com/v1",
+  "kind": "PrometheusRule",
+  "metadata": {
+    "name": "vle9-cpu-alert",
+    "namespace": "monitoring",
+    "labels": {
+      "release": "monitoring"
+    }
+  },
+  "spec": {
+    "groups": [
+      {
+        "name": "vle9-cpu",
+        "rules": [
+          {
+            "alert": "VLE9HighCPU",
+            "expr": "sum(rate(container_cpu_usage_seconds_total{namespace=\"vle9\",container!=\"\",container!=\"POD\"}[1m])) > 0.3",
+            "for": "30s",
+            "labels": {
+              "severity": "warning",
+              "experiment": "9"
+            },
+            "annotations": {
+              "summary": "Experiment 9: CPU exceeds 0.3 cores during controlled load"
+            }
+          }
+        ]
+      }
+    ]
+  }
+}
